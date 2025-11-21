@@ -1,0 +1,243 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ============================================
+// USER & AUTH
+// ============================================
+
+enum Role {
+  STUDENT
+  INSTRUCTOR
+  ADMIN
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String?
+  password      String    // hashed
+  role          Role      @default(STUDENT)
+  avatarUrl     String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  // Relations
+  enrollments   Enrollment[]
+  attempts      Attempt[]
+  masteryEvents MasteryEvent[]
+  coursesCreated Course[]  @relation("InstructorCourses")
+
+  @@index([email])
+}
+
+// ============================================
+// LMS DOMAIN
+// ============================================
+
+model Course {
+  id           String    @id @default(cuid())
+  title        String
+  description  String
+  thumbnailUrl String?
+  instructorId String
+  published    Boolean   @default(false)
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+
+  // Relations
+  instructor   User       @relation("InstructorCourses", fields: [instructorId], references: [id], onDelete: Cascade)
+  lessons      Lesson[]
+  enrollments  Enrollment[]
+
+  @@index([instructorId])
+  @@index([published])
+}
+
+model Lesson {
+  id          String    @id @default(cuid())
+  courseId    String
+  title       String
+  content     String    @db.Text  // Rich text/markdown
+  order       Int
+  videoUrl    String?
+  duration    Int?      // minutes
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  // Relations
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  documents   Document[] @relation("LessonDocuments")
+
+  @@index([courseId, order])
+}
+
+model Enrollment {
+  id          String    @id @default(cuid())
+  userId      String
+  courseId    String
+  enrolledAt  DateTime  @default(now())
+  completedAt DateTime?
+  progress    Int       @default(0)  // 0-100
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  course      Course    @relation(fields: [courseId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// ============================================
+// ASSESSMENT DOMAIN
+// ============================================
+
+enum Difficulty {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
+
+enum Language {
+  JAVASCRIPT
+  PYTHON
+  JAVA
+  CPP
+  TYPESCRIPT
+  GO
+  RUST
+}
+
+model Challenge {
+  id          String     @id @default(cuid())
+  slug        String     @unique
+  title       String
+  description String     @db.Text
+  difficulty  Difficulty
+  language    Language
+  starterCode String     @db.Text
+  solution    String     @db.Text
+  tags        String[]   // ['arrays', 'loops', 'recursion']
+  hints       String[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  // Relations
+  testCases   TestCase[]
+  attempts    Attempt[]
+
+  @@index([difficulty])
+  @@index([language])
+}
+
+model TestCase {
+  id             String   @id @default(cuid())
+  challengeId    String
+  input          String   @db.Text
+  expectedOutput String   @db.Text
+  isHidden       Boolean  @default(false)
+  weight         Int      @default(1)
+  createdAt      DateTime @default(now())
+
+  // Relations
+  challenge      Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([challengeId])
+}
+
+model Attempt {
+  id          String   @id @default(cuid())
+  userId      String
+  challengeId String
+  code        String   @db.Text
+  passed      Boolean
+  score       Int      @default(0)  // 0-100
+  timeSpent   Int      // seconds
+  hintsUsed   Int      @default(0)
+  attemptedAt DateTime @default(now())
+
+  // Relations
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  challenge   Challenge @relation(fields: [challengeId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([challengeId])
+  @@index([attemptedAt])
+}
+
+enum MasteryEventType {
+  ATTEMPT
+  SUCCESS
+  FAILURE
+  HINT
+}
+
+model MasteryEvent {
+  id        String           @id @default(cuid())
+  userId    String
+  skillTag  String           // e.g., 'arrays', 'loops', 'recursion'
+  event     MasteryEventType
+  metadata  Json?            // Additional context
+  timestamp DateTime         @default(now())
+
+  // Relations
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, skillTag])
+  @@index([timestamp])
+}
+
+// ============================================
+// KNOWLEDGE RAG DOMAIN
+// ============================================
+
+enum DocumentType {
+  LESSON
+  DOCUMENTATION
+  SOLUTION
+  ARTICLE
+  DISCUSSION
+}
+
+model Document {
+  id          String       @id @default(cuid())
+  title       String
+  content     String       @db.Text
+  type        DocumentType
+  sourceUrl   String?
+  metadata    Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  // Relations
+  chunks      DocumentChunk[]
+  lesson      Lesson?      @relation("LessonDocuments", fields: [lessonId], references: [id], onDelete: Cascade)
+  lessonId    String?
+
+  @@index([type])
+}
+
+model DocumentChunk {
+  id          String   @id @default(cuid())
+  documentId  String
+  content     String   @db.Text
+  chunkIndex  Int
+  embedding   Float[]  // Vector embedding - use pgvector extension in production
+  metadata    Json?
+  createdAt   DateTime @default(now())
+
+  // Relations
+  document    Document @relation(fields: [documentId], references: [id], onDelete: Cascade)
+
+  @@index([documentId])
+  // For pgvector: @@index([embedding], type: Gist)
+}
