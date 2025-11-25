@@ -245,3 +245,32 @@ export async function deleteDocument(documentId: string): Promise<void> {
     throw new Error('Failed to delete document');
   }
 }
+
+/**
+ * Get RAG context chunks for a specific lesson
+ * Useful for providing lesson-specific context to the AI tutor
+ */
+export async function getLessonContextChunks(lessonId: string, limit = 8) {
+  try {
+    const documents = await prisma.document.findMany({
+      where: { lessonId },
+      include: { chunks: true },
+    });
+
+    // Flatten all chunks from all documents
+    const allChunks = documents.flatMap((d: any) => d.chunks ?? []);
+
+    logger.info('Retrieved lesson context chunks', {
+      lessonId,
+      documentCount: documents.length,
+      chunkCount: allChunks.length,
+      returned: Math.min(limit, allChunks.length),
+    });
+
+    // Return first N chunks (naive approach - can be improved with relevance scoring)
+    return allChunks.slice(0, limit);
+  } catch (error) {
+    logger.error('Failed to get lesson context chunks', error, { lessonId });
+    return [];
+  }
+}

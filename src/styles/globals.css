@@ -20,6 +20,24 @@ body {
   font-family: Arial, Helvetica, sans-serif;
 }
 
+/* Ensure form inputs have dark, readable text */
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="url"],
+input[type="tel"],
+input[type="search"],
+textarea,
+select {
+  color: #1f2937 !important; /* gray-800 */
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #9ca3af; /* gray-400 - lighter for placeholders */
+}
+
 @layer utilities {
   .text-balance {
     text-wrap: balance;

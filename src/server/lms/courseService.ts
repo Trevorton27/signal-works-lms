@@ -11,11 +11,18 @@ export async function listCourses(filters?: {
   instructorId?: string;
 }): Promise<Course[]> {
   try {
+    const where: any = {};
+
+    if (filters?.published !== undefined) {
+      where.published = filters.published;
+    }
+
+    if (filters?.instructorId) {
+      where.instructorId = filters.instructorId;
+    }
+
     const courses = await prisma.course.findMany({
-      where: {
-        published: filters?.published,
-        instructorId: filters?.instructorId,
-      },
+      where,
       orderBy: {
         createdAt: 'desc',
       },

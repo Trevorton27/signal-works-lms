@@ -52,8 +52,13 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     logger.error('POST /api/lms/courses failed', error);
+    console.error('Full error:', error);
     return NextResponse.json(
-      { success: false, error: 'Failed to create course' },
+      {
+        success: false,
+        error: error instanceof Error ? error.message : 'Failed to create course',
+        details: error instanceof Error ? error.stack : String(error)
+      },
       { status: 500 }
     );
   }

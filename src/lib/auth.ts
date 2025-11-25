@@ -28,16 +28,13 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
   const cookieStore = await cookies();
   const sessionToken = cookieStore.get('session-token');
 
-  if (!sessionToken) {
-    return null;
-  }
-
-  // Mock user for development
+  // For development: Always return an INSTRUCTOR user (no login required)
+  // This allows testing the instructor interface without authentication
   return {
-    id: 'user-1',
-    email: 'student@example.com',
-    name: 'Test Student',
-    role: 'STUDENT',
+    id: 'instructor-1',
+    email: 'instructor@example.com',
+    name: 'Test Instructor',
+    role: 'INSTRUCTOR',
   };
 }
 
@@ -74,17 +71,11 @@ export async function getUserFromRequest(req: NextRequest): Promise<CurrentUser 
   // TODO: Implement based on your auth strategy
   // Could check Authorization header, cookies, etc.
 
-  const sessionToken = req.cookies.get('session-token');
-
-  if (!sessionToken) {
-    return null;
-  }
-
-  // Mock implementation
+  // For development: Always return an INSTRUCTOR user (no login required)
   return {
-    id: 'user-1',
-    email: 'student@example.com',
-    name: 'Test Student',
-    role: 'STUDENT',
+    id: 'instructor-1',
+    email: 'instructor@example.com',
+    name: 'Test Instructor',
+    role: 'INSTRUCTOR',
   };
 }

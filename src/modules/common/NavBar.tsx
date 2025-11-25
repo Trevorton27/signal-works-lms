@@ -18,6 +18,9 @@ export default function NavBar() {
               <Link href="/assessment" className="hover:text-indigo-200 transition">
                 Assessment
               </Link>
+              <Link href="/instructor" className="hover:text-indigo-200 transition">
+                Instructor
+              </Link>
             </div>
           </div>
           <div className="flex items-center space-x-4">
