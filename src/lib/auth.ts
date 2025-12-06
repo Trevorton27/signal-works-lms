@@ -1,9 +1,9 @@
-import { cookies } from 'next/headers';
+import { currentUser, auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
 
 /**
  * Auth helpers for getting current user and protecting routes
- * TODO: Implement with your auth provider (NextAuth, Clerk, Auth0, etc.)
+ * Using Clerk for authentication
  */
 
 export interface CurrentUser {
@@ -14,28 +14,39 @@ export interface CurrentUser {
 }
 
 /**
- * Get the currently authenticated user
+ * Get the currently authenticated user from Clerk
  * Returns null if not authenticated
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  // TODO: Implement based on your auth strategy
-  // Example with NextAuth:
-  // const session = await getServerSession(authOptions);
-  // if (!session?.user) return null;
-  // return session.user;
+  const user = await currentUser();
 
-  // Placeholder implementation
-  const cookieStore = await cookies();
-  const sessionToken = cookieStore.get('session-token');
+  if (!user) {
+    return null;
+  }
 
-  // For development: Always return an INSTRUCTOR user (no login required)
-  // This allows testing the instructor interface without authentication
-  return {
-    id: 'instructor-1',
-    email: 'instructor@example.com',
-    name: 'Test Instructor',
-    role: 'INSTRUCTOR',
+  // Get role from Clerk's public metadata
+  // Default to STUDENT if no role is set
+  const role = (user.publicMetadata?.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT';
+
+  const currentUserData = {
+    id: user.id,
+    email: user.emailAddresses[0]?.emailAddress || '',
+    name: user.firstName && user.lastName
+      ? `${user.firstName} ${user.lastName}`
+      : user.firstName || user.lastName || null,
+    role,
   };
+
+  // Log user info in development
+  if (process.env.NODE_ENV === 'development') {
+    console.log('🔐 Current User:', {
+      email: currentUserData.email,
+      role: currentUserData.role,
+      id: currentUserData.id
+    });
+  }
+
+  return currentUserData;
 }
 
 /**
@@ -66,16 +77,13 @@ export async function requireRole(allowedRoles: CurrentUser['role'][]): Promise<
 
 /**
  * Get user from request (for API routes)
+ * This is a convenience wrapper around getCurrentUser for API routes
  */
 export async function getUserFromRequest(req: NextRequest): Promise<CurrentUser | null> {
-  // TODO: Implement based on your auth strategy
-  // Could check Authorization header, cookies, etc.
-
-  // For development: Always return an INSTRUCTOR user (no login required)
-  return {
-    id: 'instructor-1',
-    email: 'instructor@example.com',
-    name: 'Test Instructor',
-    role: 'INSTRUCTOR',
-  };
+  return getCurrentUser();
 }
+
+/**
+ * Get auth object from Clerk (for use in middleware)
+ */
+export { auth };

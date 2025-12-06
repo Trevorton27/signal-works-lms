@@ -35,6 +35,7 @@ model User {
   attempts      Attempt[]
   masteryEvents MasteryEvent[]
   coursesCreated Course[]  @relation("InstructorCourses")
+  roadmapItems  StudentRoadmap[] @relation("UserRoadmaps")
 
   @@index([email])
 }
@@ -240,4 +241,44 @@ model DocumentChunk {
 
   @@index([documentId])
   // For pgvector: @@index([embedding], type: Gist)
+}
+
+// ============================================
+// STUDENT ROADMAP DOMAIN
+// ============================================
+
+enum RoadmapItemType {
+  COURSE          // Course in learning journey
+  SKILL           // Skill to develop
+  PROJECT         // Project to complete
+  MILESTONE       // Achievement milestone
+}
+
+enum RoadmapStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+  BLOCKED
+}
+
+model StudentRoadmap {
+  id          String         @id @default(cuid())
+  userId      String
+  title       String
+  description String?        @db.Text
+  itemType    RoadmapItemType
+  status      RoadmapStatus  @default(NOT_STARTED)
+  order       Int
+  targetDate  DateTime?
+  completedAt DateTime?
+  metadata    Json?          // Additional data like courseId, skillTags, etc.
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  // Relations
+  user        User           @relation("UserRoadmaps", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([status])
+  @@index([userId, order])
 }
