@@ -30,7 +30,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Check role-based access for admin routes
   if (req.nextUrl.pathname.startsWith('/admin') && userId) {
-    const role = (sessionClaims?.publicMetadata as any)?.role as string || 'STUDENT';
+    const role = (sessionClaims?.publicMetadata as any)?.role as string || 'ADMIN';
     console.log('🔐 Admin route access attempt:', {
       path: req.nextUrl.pathname,
       userId,
@@ -46,7 +46,7 @@ export default clerkMiddleware(async (auth, req) => {
 
   // Check role-based access for instructor routes
   if (req.nextUrl.pathname.startsWith('/instructor') && userId) {
-    const role = (sessionClaims?.publicMetadata as any)?.role as string || 'STUDENT';
+    const role = (sessionClaims?.publicMetadata as any)?.role as string || 'INSTRUCTOR';
     if (role !== 'INSTRUCTOR' && role !== 'ADMIN') {
       return NextResponse.redirect(new URL('/', req.url));
     }
