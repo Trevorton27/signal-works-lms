@@ -61,7 +61,7 @@ export default function CourseForm({ course }: CourseFormProps) {
   return (
     <div className="max-w-3xl mx-auto">
       <div className="mb-6">
-        <Link href="/instructor" className="text-indigo-600 hover:underline">
+        <Link href="/about-trevor" className="text-indigo-600 hover:underline">
           &larr; Back to Dashboard
         </Link>
       </div>
@@ -131,7 +131,7 @@ export default function CourseForm({ course }: CourseFormProps) {
               {loading ? 'Saving...' : course ? 'Update Course' : 'Create Course'}
             </button>
             <Link
-              href="/instructor"
+              href="/about-trevor"
               className="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
             >
               Cancel

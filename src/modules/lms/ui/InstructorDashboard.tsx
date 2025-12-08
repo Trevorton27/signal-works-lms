@@ -42,7 +42,7 @@ export default function InstructorDashboard() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="text-3xl font-bold text-gray-900">Instructor Dashboard</h1>
         <Link
-          href="/instructor/courses/new"
+          href="/about-trevor/courses/new"
           className="px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
         >
           + Create New Course
@@ -54,7 +54,7 @@ export default function InstructorDashboard() {
           <h2 className="text-xl font-semibold text-gray-700 mb-4">No courses yet</h2>
           <p className="text-gray-600 mb-6">Get started by creating your first course.</p>
           <Link
-            href="/instructor/courses/new"
+            href="/about-trevor/courses/new"
             className="inline-block px-6 py-3 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
           >
             Create Your First Course

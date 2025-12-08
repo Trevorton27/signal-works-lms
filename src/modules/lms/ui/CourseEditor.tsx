@@ -159,7 +159,7 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <Link href="/instructor" className="text-indigo-600 hover:underline">
+        <Link href="/about-trevor" className="text-indigo-600 hover:underline">
           &larr; Back to Dashboard
         </Link>
       </div>

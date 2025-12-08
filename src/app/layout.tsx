@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { ClerkProvider } from '@clerk/nextjs';
 import '@/styles/globals.css';
 import NavBar from '@/modules/common/NavBar';
+import ClientProviders from '@/components/ClientProviders';
 
 export const metadata: Metadata = {
   title: 'Signal Works LMS',
@@ -17,8 +18,10 @@ export default function RootLayout({
     <ClerkProvider>
       <html lang="en">
         <body className="antialiased">
-          <NavBar />
-          {children}
+          <ClientProviders>
+            <NavBar />
+            {children}
+          </ClientProviders>
         </body>
       </html>
     </ClerkProvider>
