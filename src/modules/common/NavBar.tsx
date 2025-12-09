@@ -1,16 +1,19 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { SignedIn, SignedOut, UserButton, useUser } from '@clerk/nextjs';
 import { useLanguage } from '@/lib/i18n/LanguageContext';
 
 export default function NavBar() {
   const { user } = useUser();
   const { language, setLanguage, t } = useLanguage();
+  const pathname = usePathname();
   const role = (user?.publicMetadata?.role as string) || 'STUDENT';
   const isAdmin = role === 'ADMIN';
   const isStudent = role === 'STUDENT';
   const isInstructor = role === 'INSTRUCTOR';
+  const isHomePage = pathname === '/';
 
   const toggleLanguage = () => {
     setLanguage(language === 'en' ? 'ja' : 'en');
@@ -24,37 +27,34 @@ export default function NavBar() {
             <Link href="/" className="text-xl font-bold">
               Signal Works LMS
             </Link>
-            <div className="hidden md:flex space-x-4">
-              {isAdmin ? (
-                <Link href="/admin" className="hover:text-indigo-200 transition">
-                  {t('nav.dashboard')}
-                </Link>
-              ) : isStudent ? (
-                <Link href="/student" className="hover:text-indigo-200 transition">
-                  {t('nav.dashboard')}
-                </Link>
-              ) : isInstructor ? (
-                <Link href="/instructor" className="hover:text-indigo-200 transition">
-                  {t('nav.dashboard')}
-                </Link>
-              ) : (
-                <>
-                  <Link href="/courses" className="hover:text-indigo-200 transition">
-                    {t('nav.courses')}
-                  </Link>
-                  <Link href="/assessment" className="hover:text-indigo-200 transition">
-                    {t('nav.assessment')}
-                  </Link>
-                  <Link href="/student" className="hover:text-indigo-200 transition">
-                    {t('nav.student')}
-                  </Link>
-                  <Link href="/instructor" className="hover:text-indigo-200 transition">
-                    {t('nav.instructor')}
-                  </Link>
-                </>
+
+            {/* Signed Out: Show section links only on home page */}
+            <SignedOut>
+              {isHomePage && (
+                <div className="hidden md:flex space-x-6">
+                  <a href="#about" className="hover:text-indigo-200 transition">
+                    About
+                  </a>
+                  <a href="#how-it-works" className="hover:text-indigo-200 transition">
+                    How It Works
+                  </a>
+                  <a href="#features" className="hover:text-indigo-200 transition">
+                    Features
+                  </a>
+                  <a href="#curriculum" className="hover:text-indigo-200 transition">
+                    Curriculum
+                  </a>
+                  <a href="#testimonials" className="hover:text-indigo-200 transition">
+                    Testimonials
+                  </a>
+                  <a href="#faq" className="hover:text-indigo-200 transition">
+                    FAQ
+                  </a>
+                </div>
               )}
-            </div>
+            </SignedOut>
           </div>
+
           <div className="flex items-center space-x-4">
             {/* Language Toggle */}
             <button
@@ -68,14 +68,41 @@ export default function NavBar() {
               <span className="font-medium">{language === 'en' ? 'EN' : '日本語'}</span>
             </button>
 
+            {/* Signed In: Show dashboard link */}
+            <SignedIn>
+              {isAdmin ? (
+                <Link
+                  href="/admin"
+                  className="px-4 py-2 bg-white text-indigo-600 rounded-md hover:bg-indigo-50 transition font-medium"
+                >
+                  {t('nav.dashboard')}
+                </Link>
+              ) : isStudent ? (
+                <Link
+                  href="/student"
+                  className="px-4 py-2 bg-white text-indigo-600 rounded-md hover:bg-indigo-50 transition font-medium"
+                >
+                  {t('nav.dashboard')}
+                </Link>
+              ) : isInstructor ? (
+                <Link
+                  href="/instructor"
+                  className="px-4 py-2 bg-white text-indigo-600 rounded-md hover:bg-indigo-50 transition font-medium"
+                >
+                  {t('nav.dashboard')}
+                </Link>
+              ) : null}
+            </SignedIn>
+
             <SignedOut>
               <Link
                 href="/sign-in"
-                className="px-4 py-2 bg-white text-indigo-600 rounded-md hover:bg-indigo-50 transition"
+                className="px-4 py-2 bg-white text-indigo-600 rounded-md hover:bg-indigo-50 transition font-medium"
               >
                 {t('nav.signIn')}
               </Link>
             </SignedOut>
+
             <SignedIn>
               <UserButton
                 appearance={{

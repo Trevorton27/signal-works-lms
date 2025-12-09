@@ -35,7 +35,7 @@ export async function listCourses(filters?: {
   }
 }
 
-export async function getCourseById(courseId: string): Promise<Course | null> {
+export async function getCourseById(courseId: string, userId?: string): Promise<Course | null> {
   try {
     const course = await prisma.course.findUnique({
       where: { id: courseId },
@@ -50,10 +50,40 @@ export async function getCourseById(courseId: string): Promise<Course | null> {
             email: true,
           },
         },
+        _count: {
+          select: {
+            enrollments: {
+              where: { status: 'ACTIVE' },
+            },
+          },
+        },
+        ...(userId && {
+          enrollments: {
+            where: {
+              userId,
+              status: 'ACTIVE',
+            },
+            select: {
+              id: true,
+              status: true,
+              enrolledAt: true,
+            },
+          },
+        }),
       },
     });
 
-    return course as any; // TODO: Type properly with relations
+    if (!course) return null;
+
+    // Add computed fields
+    const result = {
+      ...course,
+      isEnrolled: userId ? (course as any).enrollments?.length > 0 : false,
+      isFull: course.maxStudents ? course._count.enrollments >= course.maxStudents : false,
+      availableSlots: course.maxStudents ? course.maxStudents - course._count.enrollments : null,
+    };
+
+    return result as any; // TODO: Type properly with relations
   } catch (error) {
     logger.error('Failed to get course', error, { courseId });
     throw new Error('Failed to retrieve course');

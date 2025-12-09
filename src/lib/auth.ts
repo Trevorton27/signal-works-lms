@@ -1,5 +1,6 @@
 import { currentUser, auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
+import { getOrCreateUser } from '@/server/auth/userSyncService';
 
 /**
  * Auth helpers for getting current user and protecting routes
@@ -16,25 +17,38 @@ export interface CurrentUser {
 /**
  * Get the currently authenticated user from Clerk
  * Returns null if not authenticated
+ * Syncs user with database and returns database user ID
  */
 export async function getCurrentUser(): Promise<CurrentUser | null> {
-  const user = await currentUser();
+  const clerkUser = await currentUser();
 
-  if (!user) {
+  if (!clerkUser) {
     return null;
   }
 
   // Get role from Clerk's public metadata
   // Default to STUDENT if no role is set
-  const role = (user.publicMetadata?.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT';
+  const role = (clerkUser.publicMetadata?.role as 'STUDENT' | 'INSTRUCTOR' | 'ADMIN') || 'STUDENT';
+
+  const email = clerkUser.emailAddresses[0]?.emailAddress || '';
+  const name = clerkUser.firstName && clerkUser.lastName
+    ? `${clerkUser.firstName} ${clerkUser.lastName}`
+    : clerkUser.firstName || clerkUser.lastName || null;
+
+  // Sync with database - get or create user record
+  const dbUser = await getOrCreateUser({
+    clerkId: clerkUser.id,
+    email,
+    name,
+    role,
+    avatarUrl: clerkUser.imageUrl,
+  });
 
   const currentUserData = {
-    id: user.id,
-    email: user.emailAddresses[0]?.emailAddress || '',
-    name: user.firstName && user.lastName
-      ? `${user.firstName} ${user.lastName}`
-      : user.firstName || user.lastName || null,
-    role,
+    id: dbUser.id, // Return database user ID, not Clerk ID
+    email: dbUser.email,
+    name: dbUser.name,
+    role: dbUser.role,
   };
 
   // Log user info in development
@@ -42,7 +56,8 @@ export async function getCurrentUser(): Promise<CurrentUser | null> {
     console.log('🔐 Current User:', {
       email: currentUserData.email,
       role: currentUserData.role,
-      id: currentUserData.id
+      dbId: currentUserData.id,
+      clerkId: clerkUser.id
     });
   }
 

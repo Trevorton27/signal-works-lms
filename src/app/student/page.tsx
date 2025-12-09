@@ -11,6 +11,7 @@ import StudyStreak from '@/modules/student/components/StudyStreak';
 import AIRecommendations from '@/modules/student/components/AIRecommendations';
 import Notifications from '@/modules/student/components/Notifications';
 import QuickNav from '@/modules/student/components/QuickNav';
+import MyCourses from '@/modules/student/components/MyCourses';
 
 export default function StudentDashboard() {
   const { user } = useUser();
@@ -55,20 +56,25 @@ export default function StudentDashboard() {
           <RoadmapProgress />
         </div>
 
-        {/* Second Row: Active Tasks & Project */}
+        {/* Second Row: My Courses */}
+        <div className="mb-6">
+          <MyCourses />
+        </div>
+
+        {/* Third Row: Active Tasks & Project */}
         <div className="grid lg:grid-cols-2 gap-6 mb-6">
           <ActiveChallenges />
           <ProjectSummary />
         </div>
 
-        {/* Third Row: 3-Column Layout */}
+        {/* Fourth Row: 3-Column Layout */}
         <div className="grid lg:grid-cols-3 gap-6 mb-6">
           <StudyStreak />
           <CalendarEvents />
           <Notifications />
         </div>
 
-        {/* Fourth Row: AI Recommendations */}
+        {/* Fifth Row: AI Recommendations */}
         <div className="mb-6">
           <AIRecommendations />
         </div>

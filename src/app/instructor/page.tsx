@@ -1,10 +1,12 @@
 'use client';
 
 import { useUser } from '@clerk/nextjs';
+import { useLanguage } from '@/lib/i18n/LanguageContext';
 import Link from 'next/link';
 
 export default function InstructorDashboard() {
   const { user } = useUser();
+  const { t } = useLanguage();
   const instructorName = user?.firstName || user?.fullName || user?.username || 'Instructor';
 
   // TODO: Fetch all dashboard data in parallel using Promise.all() or React Query
@@ -75,9 +77,9 @@ export default function InstructorDashboard() {
       <div className="bg-white shadow-sm border-b border-gray-200">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <h1 className="text-3xl font-bold text-gray-900">
-            Welcome, {instructorName}! 👋
+            {t('instructor.welcome')}, {instructorName}! 👋
           </h1>
-          <p className="text-gray-600 mt-1">Here's what's happening with your cohort</p>
+          <p className="text-gray-600 mt-1">{t('instructor.subtitle')}</p>
         </div>
       </div>
 
@@ -88,19 +90,19 @@ export default function InstructorDashboard() {
           {/* TODO: Define "active" and "at-risk" rules (e.g. low progress + low activity) */}
           {/* TODO: Clicking a stat should filter the student list below */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <div className="text-sm font-medium text-gray-600">Total Students</div>
+            <div className="text-sm font-medium text-gray-600">{t('instructor.totalStudents')}</div>
             <div className="text-3xl font-bold text-gray-900 mt-2">{cohortStats.totalStudents}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6 border border-green-100">
-            <div className="text-sm font-medium text-green-600">Active (7 days)</div>
+            <div className="text-sm font-medium text-green-600">{t('instructor.activeStudents')}</div>
             <div className="text-3xl font-bold text-green-600 mt-2">{cohortStats.activeStudents}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6 border border-yellow-100">
-            <div className="text-sm font-medium text-yellow-600">Inactive</div>
+            <div className="text-sm font-medium text-yellow-600">{t('instructor.inactiveStudents')}</div>
             <div className="text-3xl font-bold text-yellow-600 mt-2">{cohortStats.inactiveStudents}</div>
           </div>
           <div className="bg-white rounded-xl shadow-md p-6 border border-red-100">
-            <div className="text-sm font-medium text-red-600">At Risk</div>
+            <div className="text-sm font-medium text-red-600">{t('instructor.atRiskStudents')}</div>
             <div className="text-3xl font-bold text-red-600 mt-2">{cohortStats.atRiskStudents}</div>
           </div>
         </div>
@@ -110,9 +112,9 @@ export default function InstructorDashboard() {
           {/* 2. Student List / Snapshot Cards */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-gray-900">Students</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('instructor.students')}</h2>
               <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">
-                View All
+                {t('instructor.viewAll')}
               </button>
             </div>
             {/* TODO: Fetch list of students assigned to this instructor from the DB */}
@@ -139,13 +141,13 @@ export default function InstructorDashboard() {
                   </div>
                   <div className="mt-2">
                     <div className="flex items-center justify-between text-sm mb-1">
-                      <span className="text-gray-600">Progress</span>
+                      <span className="text-gray-600">{t('instructor.progress')}</span>
                       <span className="font-semibold">{student.progress}%</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
                       <div className="bg-indigo-500 h-2 rounded-full" style={{ width: `${student.progress}%` }}></div>
                     </div>
-                    <p className="text-xs text-gray-500 mt-1">Last active: {student.lastActive}</p>
+                    <p className="text-xs text-gray-500 mt-1">{t('instructor.lastActive')}: {student.lastActive}</p>
                   </div>
                 </div>
               ))}
@@ -154,7 +156,7 @@ export default function InstructorDashboard() {
 
           {/* 3. Recent Activity Feed */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Recent Activity</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('instructor.recentActivity')}</h2>
             {/* TODO: Merge activity from challenges, projects, and GitHub webhooks into a single feed */}
             {/* TODO: Fetch only recent activity for students in this instructor's cohort(s) */}
             {/* TODO: Enable basic filters (e.g. show only project submissions or only questions) */}
@@ -184,7 +186,7 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 4. Review / Grading Queue */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Review Queue</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('instructor.reviewQueue')}</h2>
             {/* TODO: Fetch pending review items from submissions table */}
             {/* TODO: "Review" button should navigate to a detailed review page */}
             {/* TODO: After approval/rejection, items should disappear from this queue */}
@@ -200,7 +202,7 @@ export default function InstructorDashboard() {
                     <span className="text-xs text-gray-500">{item.submitted}</span>
                   </div>
                   <button className="w-full mt-2 px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 text-sm font-medium">
-                    Review Now
+                    {t('instructor.reviewNow')}
                   </button>
                 </div>
               ))}
@@ -209,7 +211,7 @@ export default function InstructorDashboard() {
 
           {/* 5. Project & GitHub Overview */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Projects & GitHub</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('instructor.projectsGithub')}</h2>
             {/* TODO: Connect to student_projects table containing repo URLs and status */}
             {/* TODO: Populate "last commit" from GitHub webhook logs stored in DB */}
             {/* TODO: Add filters for project status and module */}
@@ -229,9 +231,9 @@ export default function InstructorDashboard() {
                     <svg className="w-4 h-4 mr-1" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
                     </svg>
-                    View Repository
+                    {t('instructor.viewRepository')}
                   </a>
-                  <p className="text-xs text-gray-500 mt-1">Last commit: {project.lastCommit}</p>
+                  <p className="text-xs text-gray-500 mt-1">{t('instructor.lastCommit')}: {project.lastCommit}</p>
                 </div>
               ))}
             </div>
@@ -242,25 +244,25 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* 6. Challenge Analytics */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Challenge Analytics</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('instructor.challengeAnalytics')}</h2>
             {/* TODO: Aggregate data from challenge_attempts table */}
             {/* TODO: Show per-course or per-cohort stats based on instructor context */}
             {/* TODO: Clicking a challenge opens a detailed analytics page for that challenge */}
             <div className="space-y-4">
               <div>
-                <h3 className="text-sm font-semibold text-gray-700 mb-2">Most Failed Challenges</h3>
+                <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('instructor.mostFailed')}</h3>
                 <div className="space-y-2">
                   {challengeStats.mostFailed.map((challenge, idx) => (
                     <div key={idx} className="flex items-center justify-between bg-red-50 rounded px-3 py-2">
                       <span className="text-sm text-gray-900">{challenge}</span>
-                      <span className="text-xs text-red-600 font-medium">High failure rate</span>
+                      <span className="text-xs text-red-600 font-medium">{t('instructor.highFailureRate')}</span>
                     </div>
                   ))}
                 </div>
               </div>
               <div className="pt-4 border-t">
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-600">Avg attempts per challenge</span>
+                  <span className="text-sm text-gray-600">{t('instructor.avgAttempts')}</span>
                   <span className="text-2xl font-bold text-indigo-600">{challengeStats.avgAttempts}</span>
                 </div>
               </div>
@@ -269,7 +271,7 @@ export default function InstructorDashboard() {
 
           {/* 7. Module / Roadmap Insights */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-xl font-bold text-gray-900 mb-4">Module Distribution</h2>
+            <h2 className="text-xl font-bold text-gray-900 mb-4">{t('instructor.moduleDistribution')}</h2>
             {/* TODO: Calculate per-module distribution from student progress records */}
             {/* TODO: Mark modules as bottlenecks if students stay too long or have high failure rates */}
             {/* TODO: Add link to "Edit module content" for quick navigation */}
@@ -278,9 +280,9 @@ export default function InstructorDashboard() {
                 <div key={idx} className="bg-gray-50 rounded-lg p-4">
                   <div className="flex items-center justify-between mb-2">
                     <h3 className="font-semibold text-gray-900">{module.module}</h3>
-                    <span className="text-sm text-indigo-600 font-medium">{module.students} students</span>
+                    <span className="text-sm text-indigo-600 font-medium">{module.students} {t('instructor.students')}</span>
                   </div>
-                  <p className="text-xs text-gray-600">Avg completion: {module.completion}</p>
+                  <p className="text-xs text-gray-600">{t('instructor.avgCompletion')}: {module.completion}</p>
                 </div>
               ))}
             </div>
@@ -291,7 +293,7 @@ export default function InstructorDashboard() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
           {/* 8. Questions & Support Center */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Questions</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t('instructor.questions')}</h2>
             {/* TODO: Fetch questions from questions or discussions table */}
             {/* TODO: Assign questions to specific instructors or TAs */}
             {/* TODO: Clicking a question opens full thread for answering */}
@@ -317,7 +319,7 @@ export default function InstructorDashboard() {
 
           {/* 9. Schedule & Upcoming Sessions */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
-            <h2 className="text-lg font-bold text-gray-900 mb-4">Schedule</h2>
+            <h2 className="text-lg font-bold text-gray-900 mb-4">{t('instructor.schedule')}</h2>
             {/* TODO: Integrate with Google Calendar API to fetch events */}
             {/* TODO: Generate Zoom links or pull from calendar event metadata */}
             {/* TODO: Allow navigation to "Manage schedule" page */}
@@ -335,9 +337,9 @@ export default function InstructorDashboard() {
           {/* 10. Announcements & Broadcast */}
           <div className="bg-white rounded-xl shadow-md p-6 border border-gray-100">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold text-gray-900">Announcements</h2>
+              <h2 className="text-lg font-bold text-gray-900">{t('instructor.announcements')}</h2>
               <button className="text-xs px-3 py-1 bg-indigo-600 text-white rounded-md hover:bg-indigo-700">
-                + New
+                {t('instructor.newAnnouncement')}
               </button>
             </div>
             {/* TODO: Save announcements to announcements table */}
@@ -364,16 +366,16 @@ export default function InstructorDashboard() {
               <svg className="w-6 h-6 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
               </svg>
-              <h2 className="text-xl font-bold text-gray-900">AI Insights</h2>
+              <h2 className="text-xl font-bold text-gray-900">{t('instructor.aiInsights')}</h2>
             </div>
-            <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">Refresh</button>
+            <button className="text-sm text-indigo-600 hover:text-indigo-700 font-medium">{t('instructor.refresh')}</button>
           </div>
           {/* TODO: Connect to AI microservice endpoint (e.g. /api/instructor-insights) */}
           {/* TODO: Pass anonymized aggregate stats and content metadata as context */}
           {/* TODO: Allow instructor to refresh / regenerate insights */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div className="bg-white rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Top Struggling Topics</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('instructor.topStrugglingTopics')}</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Array manipulation methods</li>
                 <li>• Asynchronous JavaScript</li>
@@ -381,7 +383,7 @@ export default function InstructorDashboard() {
               </ul>
             </div>
             <div className="bg-white rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">At-Risk Students</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('instructor.atRiskStudentsInsight')}</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• 3 students behind schedule</li>
                 <li>• Low engagement patterns detected</li>
@@ -389,7 +391,7 @@ export default function InstructorDashboard() {
               </ul>
             </div>
             <div className="bg-white rounded-lg p-4">
-              <h3 className="text-sm font-semibold text-gray-700 mb-2">Content Improvements</h3>
+              <h3 className="text-sm font-semibold text-gray-700 mb-2">{t('instructor.contentImprovements')}</h3>
               <ul className="text-sm text-gray-600 space-y-1">
                 <li>• Add more examples to Module 3</li>
                 <li>• Simplify Challenge #12 instructions</li>

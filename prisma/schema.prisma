@@ -22,9 +22,10 @@ enum Role {
 
 model User {
   id            String    @id @default(cuid())
+  clerkId       String?   @unique  // Clerk user ID for authentication
   email         String    @unique
   name          String?
-  password      String    // hashed
+  password      String?   // hashed (optional for Clerk users)
   role          Role      @default(STUDENT)
   avatarUrl     String?
   createdAt     DateTime  @default(now())
@@ -38,6 +39,7 @@ model User {
   roadmapItems  StudentRoadmap[] @relation("UserRoadmaps")
 
   @@index([email])
+  @@index([clerkId])
 }
 
 // ============================================
@@ -51,6 +53,7 @@ model Course {
   thumbnailUrl String?
   instructorId String
   published    Boolean   @default(false)
+  maxStudents  Int?      // null = unlimited
   createdAt    DateTime  @default(now())
   updatedAt    DateTime  @updatedAt
 
@@ -81,13 +84,20 @@ model Lesson {
   @@index([courseId, order])
 }
 
+enum EnrollmentStatus {
+  ACTIVE
+  COMPLETED
+  DROPPED
+}
+
 model Enrollment {
-  id          String    @id @default(cuid())
+  id          String           @id @default(cuid())
   userId      String
   courseId    String
-  enrolledAt  DateTime  @default(now())
+  status      EnrollmentStatus @default(ACTIVE)
+  enrolledAt  DateTime         @default(now())
   completedAt DateTime?
-  progress    Int       @default(0)  // 0-100
+  progress    Int              @default(0)  // 0-100
 
   // Relations
   user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
@@ -96,6 +106,7 @@ model Enrollment {
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
+  @@index([status])
 }
 
 // ============================================

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getCourseById, updateCourse } from '@/server/lms/courseService';
+import { requireAuth } from '@/lib/auth';
 import { logger } from '@/lib/logger';
 
 export async function GET(
@@ -7,7 +8,17 @@ export async function GET(
   { params }: { params: { courseId: string } }
 ) {
   try {
-    const course = await getCourseById(params.courseId);
+    // Get user if authenticated (optional for public course viewing)
+    let userId: string | undefined;
+    try {
+      const user = await requireAuth();
+      userId = user.id;
+    } catch {
+      // User not authenticated - that's okay for viewing course details
+      userId = undefined;
+    }
+
+    const course = await getCourseById(params.courseId, userId);
 
     if (!course) {
       return NextResponse.json(
