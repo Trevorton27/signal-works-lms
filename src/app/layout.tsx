@@ -5,8 +5,8 @@ import NavBar from '@/modules/common/NavBar';
 import ClientProviders from '@/components/ClientProviders';
 
 export const metadata: Metadata = {
-  title: 'Signal Works LMS',
-  description: 'AI-powered learning management system with adaptive assessment',
+  title: 'TokuWebDev',
+  description: 'Online school of application design, programming and AI engineering',
 };
 
 export default function RootLayout({

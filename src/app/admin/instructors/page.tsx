@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import AssignCourseModal from '@/components/admin/AssignCourseModal';
 
 interface User {
   id: string;
@@ -19,6 +20,8 @@ export default function InstructorManagement() {
   const [instructors, setInstructors] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
+  const [assignModalOpen, setAssignModalOpen] = useState(false);
+  const [selectedInstructor, setSelectedInstructor] = useState<User | null>(null);
 
   useEffect(() => {
     fetchInstructors();
@@ -109,7 +112,7 @@ export default function InstructorManagement() {
                     Students
                   </th>
                   <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    View Activity
+                    Actions
                   </th>
                 </tr>
               </thead>
@@ -149,26 +152,50 @@ export default function InstructorManagement() {
                           {instructor.enrolledStudents || 0}
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-center text-sm font-medium">
-                        <Link
-                          href={`/admin/instructors/${instructor.id}/activity`}
-                          className="inline-flex items-center px-3 py-1 border border-indigo-300 rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors"
-                        >
-                          <svg
-                            className="w-4 h-4 mr-1"
-                            fill="none"
-                            stroke="currentColor"
-                            viewBox="0 0 24 24"
+                      <td className="px-6 py-4 whitespace-nowrap text-center">
+                        <div className="flex items-center justify-center gap-2">
+                          <button
+                            onClick={() => {
+                              setSelectedInstructor(instructor);
+                              setAssignModalOpen(true);
+                            }}
+                            className="inline-flex items-center px-2 py-1 border border-green-300 rounded-md text-green-600 hover:bg-green-50 transition-colors text-xs"
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                            />
-                          </svg>
-                          Activity
-                        </Link>
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M12 6v6m0 0v6m0-6h6m-6 0H6"
+                              />
+                            </svg>
+                            Assign Course
+                          </button>
+                          <Link
+                            href={`/admin/instructors/${instructor.id}/activity`}
+                            className="inline-flex items-center px-2 py-1 border border-indigo-300 rounded-md text-indigo-600 hover:bg-indigo-50 transition-colors text-xs"
+                          >
+                            <svg
+                              className="w-4 h-4 mr-1"
+                              fill="none"
+                              stroke="currentColor"
+                              viewBox="0 0 24 24"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                              />
+                            </svg>
+                            Activity
+                          </Link>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -178,6 +205,22 @@ export default function InstructorManagement() {
           </div>
         )}
       </div>
+
+      {/* Assign Course Modal */}
+      {selectedInstructor && (
+        <AssignCourseModal
+          instructorId={selectedInstructor.id}
+          instructorName={selectedInstructor.name}
+          isOpen={assignModalOpen}
+          onClose={() => {
+            setAssignModalOpen(false);
+            setSelectedInstructor(null);
+          }}
+          onSuccess={() => {
+            fetchInstructors(); // Refresh the list
+          }}
+        />
+      )}
     </div>
   );
 }

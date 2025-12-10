@@ -22,8 +22,8 @@ export const translations = {
     'common.refresh': 'Refresh',
 
     // Home Page
-    'home.heroTitle': 'Welcome to Signal Works LMS',
-    'home.heroSubtitle': 'Learn to code with AI-powered adaptive assessment and personalized tutoring',
+    'home.heroTitle': 'Welcome to TokuWebDev',
+    'home.heroSubtitle': 'Online school of application design, programming and AI engineering',
     'home.browseCourses': 'Browse Courses',
     'home.tryAssessment': 'Try Assessment',
     'home.learnMore': 'Learn More',
@@ -328,8 +328,8 @@ export const translations = {
     'common.refresh': '更新',
 
     // Home Page
-    'home.heroTitle': 'Signal Works LMSへようこそ',
-    'home.heroSubtitle': 'AI搭載の適応型評価とパーソナライズされた指導でプログラミングを学びましょう',
+    'home.heroTitle': 'TokuWebDevへようこそ',
+    'home.heroSubtitle': 'アプリケーション設計、プログラミング、AIエンジニアリングのオンラインスクール',
     'home.browseCourses': 'コースを見る',
     'home.tryAssessment': '評価を試す',
     'home.learnMore': '詳しく見る',

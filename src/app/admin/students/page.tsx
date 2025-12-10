@@ -8,6 +8,7 @@ interface Student {
   email: string;
   name: string | null;
   role: string;
+  adminNotes: string | null;
   createdAt: string;
   currentEnrollment: {
     id: string;
@@ -50,11 +51,39 @@ export default function StudentManagement() {
 
       if (data.success) {
         setStudents(data.data.users);
+
+        // Initialize notes state from fetched data
+        const notesMap: { [key: string]: string } = {};
+        data.data.users.forEach((student: Student) => {
+          if (student.adminNotes) {
+            notesMap[student.id] = student.adminNotes;
+          }
+        });
+        setNotes(notesMap);
       }
     } catch (error) {
       console.error('Error fetching students:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSaveNotes = async (studentId: string, note: string) => {
+    try {
+      const res = await fetch(`/api/admin/users/${studentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ adminNotes: note }),
+      });
+
+      const data = await res.json();
+      if (!data.success) {
+        console.error('Failed to save notes:', data.error);
+        alert('Failed to save notes: ' + (data.error || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Error saving notes:', error);
+      alert('Failed to save notes');
     }
   };
 
@@ -271,6 +300,7 @@ export default function StudentManagement() {
                           onChange={(e) =>
                             setNotes({ ...notes, [student.id]: e.target.value })
                           }
+                          onBlur={(e) => handleSaveNotes(student.id, e.target.value)}
                           className="w-full px-2 py-1 text-sm border border-gray-300 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                         />
                       </td>

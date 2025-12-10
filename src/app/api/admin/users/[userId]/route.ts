@@ -19,6 +19,7 @@ export async function GET(
         name: true,
         role: true,
         avatarUrl: true,
+        adminNotes: true,
         createdAt: true,
         updatedAt: true,
         _count: {
@@ -89,13 +90,14 @@ export async function PUT(
     await requireRole(['ADMIN']);
 
     const body = await request.json();
-    const { email, name, role, password, avatarUrl } = body;
+    const { email, name, role, password, avatarUrl, adminNotes } = body;
 
     const updateData: any = {};
 
     if (email) updateData.email = email;
     if (name !== undefined) updateData.name = name;
     if (avatarUrl !== undefined) updateData.avatarUrl = avatarUrl;
+    if (adminNotes !== undefined) updateData.adminNotes = adminNotes;
 
     if (role && ['STUDENT', 'INSTRUCTOR', 'ADMIN'].includes(role)) {
       updateData.role = role;
@@ -114,6 +116,7 @@ export async function PUT(
         name: true,
         role: true,
         avatarUrl: true,
+        adminNotes: true,
         createdAt: true,
         updatedAt: true,
       },

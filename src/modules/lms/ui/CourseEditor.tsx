@@ -29,6 +29,8 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
   const [loading, setLoading] = useState(true);
   const [showLessonForm, setShowLessonForm] = useState(false);
   const [editingLesson, setEditingLesson] = useState<Lesson | null>(null);
+  const [savingLesson, setSavingLesson] = useState(false);
+  const [lessonSuccessMessage, setLessonSuccessMessage] = useState('');
   const [lessonForm, setLessonForm] = useState({
     title: '',
     content: '',
@@ -79,6 +81,9 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
   const handleSaveLesson = async (e: React.FormEvent) => {
     e.preventDefault();
 
+    setSavingLesson(true);
+    setLessonSuccessMessage('');
+
     try {
       const payload = {
         title: lessonForm.title,
@@ -103,12 +108,24 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
       const data = await response.json();
 
       if (data.success) {
+        const successMessage = editingLesson
+          ? 'Lesson successfully updated!'
+          : 'Lesson successfully created!';
+        setLessonSuccessMessage(successMessage);
+
         await fetchCourseData();
-        setShowLessonForm(false);
-        setLessonForm({ title: '', content: '', videoUrl: '', duration: '' });
+
+        // Clear form and hide after a brief delay to show success message
+        setTimeout(() => {
+          setShowLessonForm(false);
+          setLessonForm({ title: '', content: '', videoUrl: '', duration: '' });
+          setLessonSuccessMessage('');
+        }, 2000);
       }
     } catch (error) {
       console.error('Failed to save lesson:', error);
+    } finally {
+      setSavingLesson(false);
     }
   };
 
@@ -153,13 +170,20 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
   }
 
   if (!course) {
-    return <div className="text-center py-12 text-red-600">Course not found</div>;
+    return (
+      <div className="text-center py-12">
+        <div className="text-red-600 text-lg font-semibold mb-2">Course not found</div>
+        <div className="text-gray-600 text-sm">
+          If you just navigated here, the database might be waking up. Please refresh the page in a few seconds.
+        </div>
+      </div>
+    );
   }
 
   return (
     <div className="max-w-6xl mx-auto">
       <div className="mb-6">
-        <Link href="/about-trevor" className="text-indigo-600 hover:underline">
+        <Link href="/admin" className="text-indigo-600 hover:underline">
           &larr; Back to Dashboard
         </Link>
       </div>
@@ -263,17 +287,28 @@ export default function CourseEditor({ courseId }: CourseEditorProps) {
                 </div>
               </div>
 
+              {lessonSuccessMessage && (
+                <div className="p-3 bg-green-100 border border-green-300 rounded-md text-green-800 text-sm">
+                  {lessonSuccessMessage}
+                </div>
+              )}
+
               <div className="flex gap-3 pt-2">
                 <button
                   type="submit"
-                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition"
+                  disabled={savingLesson}
+                  className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {editingLesson ? 'Update Lesson' : 'Create Lesson'}
+                  {savingLesson
+                    ? (editingLesson ? 'Updating lesson...' : 'Creating lesson...')
+                    : (editingLesson ? 'Update Lesson' : 'Create Lesson')
+                  }
                 </button>
                 <button
                   type="button"
                   onClick={() => setShowLessonForm(false)}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition"
+                  disabled={savingLesson}
+                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>

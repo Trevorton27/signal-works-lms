@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 interface Course {
   id: string;
@@ -21,17 +22,37 @@ interface Course {
   };
 }
 
+interface Instructor {
+  id: string;
+  name: string | null;
+  email: string;
+}
+
 export default function CourseManagement() {
+  const router = useRouter();
   const [courses, setCourses] = useState<Course[]>([]);
+  const [instructors, setInstructors] = useState<Instructor[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
   const [publishedFilter, setPublishedFilter] = useState<string>('all');
   const [editingCourse, setEditingCourse] = useState<Course | null>(null);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [createForm, setCreateForm] = useState({
+    title: '',
+    description: '',
+    thumbnailUrl: '',
+    instructorId: '',
+  });
+  const [creating, setCreating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     fetchCourses();
+    fetchInstructors();
   }, [search, publishedFilter]);
 
   const fetchCourses = async () => {
@@ -51,6 +72,19 @@ export default function CourseManagement() {
       console.error('Error fetching courses:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const fetchInstructors = async () => {
+    try {
+      const res = await fetch('/api/admin/users?role=INSTRUCTOR&limit=1000');
+      const data = await res.json();
+
+      if (data.success) {
+        setInstructors(data.data.users);
+      }
+    } catch (error) {
+      console.error('Error fetching instructors:', error);
     }
   };
 
@@ -95,16 +129,64 @@ export default function CourseManagement() {
       const data = await res.json();
 
       if (data.success) {
+        setSuccessMessage('Course updated successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
         setShowEditModal(false);
         setEditingCourse(null);
         fetchCourses();
       }
     } catch (error) {
       console.error('Error updating course:', error);
+      setErrorMessage('Failed to update course');
+      setTimeout(() => setErrorMessage(''), 3000);
+    }
+  };
+
+  const handleCreateCourse = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!createForm.instructorId) {
+      setErrorMessage('Please select an instructor');
+      setTimeout(() => setErrorMessage(''), 3000);
+      return;
+    }
+
+    setCreating(true);
+    try {
+      const res = await fetch('/api/lms/courses', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          title: createForm.title,
+          description: createForm.description,
+          thumbnailUrl: createForm.thumbnailUrl || undefined,
+          instructorId: createForm.instructorId,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        setSuccessMessage('Course created successfully!');
+        setTimeout(() => setSuccessMessage(''), 3000);
+        setShowCreateModal(false);
+        setCreateForm({ title: '', description: '', thumbnailUrl: '', instructorId: '' });
+        fetchCourses();
+      } else {
+        setErrorMessage(data.error || 'Failed to create course');
+        setTimeout(() => setErrorMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error creating course:', error);
+      setErrorMessage('Failed to create course');
+      setTimeout(() => setErrorMessage(''), 3000);
+    } finally {
+      setCreating(false);
     }
   };
 
   const handleDeleteCourse = async (courseId: string) => {
+    setDeleting(true);
     try {
       const res = await fetch(`/api/admin/courses/${courseId}`, {
         method: 'DELETE',
@@ -113,12 +195,27 @@ export default function CourseManagement() {
       const data = await res.json();
 
       if (data.success) {
+        setSuccessMessage('Course successfully deleted!');
+        setTimeout(() => setSuccessMessage(''), 3000);
         setDeleteConfirm(null);
         fetchCourses();
+      } else {
+        setErrorMessage(data.error || 'Failed to delete course');
+        setTimeout(() => setErrorMessage(''), 3000);
       }
     } catch (error) {
       console.error('Error deleting course:', error);
+      setErrorMessage('Failed to delete course');
+      setTimeout(() => setErrorMessage(''), 3000);
+    } finally {
+      setDeleting(false);
     }
+  };
+
+  const handleManageLessons = (courseId: string) => {
+    setShowEditModal(false);
+    setEditingCourse(null);
+    router.push(`/instructor/courses/${courseId}/edit`);
   };
 
   const formatDate = (dateString: string) => {
@@ -135,15 +232,39 @@ export default function CourseManagement() {
               <h1 className="text-3xl font-bold text-gray-900">Course Management</h1>
               <p className="text-gray-600 mt-1">Manage all courses across the platform</p>
             </div>
-            <Link
-              href="/admin"
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-            >
-              Back to Dashboard
-            </Link>
+            <div className="flex gap-3">
+              <button
+                onClick={() => setShowCreateModal(true)}
+                className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700"
+              >
+                + Create New Course
+              </button>
+              <Link
+                href="/admin"
+                className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+              >
+                Back to Dashboard
+              </Link>
+            </div>
           </div>
         </div>
       </div>
+
+      {/* Success/Error Messages */}
+      {successMessage && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="p-4 bg-green-100 border border-green-300 rounded-md text-green-800">
+            {successMessage}
+          </div>
+        </div>
+      )}
+      {errorMessage && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          <div className="p-4 bg-red-100 border border-red-300 rounded-md text-red-800">
+            {errorMessage}
+          </div>
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Filters */}
@@ -203,7 +324,7 @@ export default function CourseManagement() {
                 {courses.length === 0 ? (
                   <tr>
                     <td colSpan={7} className="px-6 py-4 text-center text-gray-500">
-                      No courses found. Courses are created by instructors through the platform.
+                      No courses found. Click "Create New Course" to add a course.
                     </td>
                   </tr>
                 ) : (
@@ -282,13 +403,15 @@ export default function CourseManagement() {
                             <div className="flex gap-1">
                               <button
                                 onClick={() => handleDeleteCourse(course.id)}
-                                className="px-2 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700"
+                                disabled={deleting}
+                                className="px-2 py-1 text-xs text-white bg-red-600 rounded hover:bg-red-700 disabled:opacity-50"
                               >
-                                Confirm
+                                {deleting ? 'Deleting...' : 'Confirm'}
                               </button>
                               <button
                                 onClick={() => setDeleteConfirm(null)}
-                                className="px-2 py-1 text-xs text-gray-600 bg-gray-200 rounded hover:bg-gray-300"
+                                disabled={deleting}
+                                className="px-2 py-1 text-xs text-gray-600 bg-gray-200 rounded hover:bg-gray-300 disabled:opacity-50"
                               >
                                 Cancel
                               </button>
@@ -324,6 +447,93 @@ export default function CourseManagement() {
           </div>
         )}
       </div>
+
+      {/* Create Modal */}
+      {showCreateModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg max-w-2xl w-full p-6">
+            <h2 className="text-2xl font-bold text-gray-900 mb-4">Create New Course</h2>
+            <form onSubmit={handleCreateCourse}>
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Instructor *
+                  </label>
+                  <select
+                    value={createForm.instructorId}
+                    onChange={(e) => setCreateForm({ ...createForm, instructorId: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  >
+                    <option value="">-- Select an instructor --</option>
+                    {instructors.map((instructor) => (
+                      <option key={instructor.id} value={instructor.id}>
+                        {instructor.name || instructor.email}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Title *
+                  </label>
+                  <input
+                    type="text"
+                    value={createForm.title}
+                    onChange={(e) => setCreateForm({ ...createForm, title: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Description *
+                  </label>
+                  <textarea
+                    value={createForm.description}
+                    onChange={(e) => setCreateForm({ ...createForm, description: e.target.value })}
+                    rows={4}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Thumbnail URL (optional)
+                  </label>
+                  <input
+                    type="url"
+                    value={createForm.thumbnailUrl}
+                    onChange={(e) => setCreateForm({ ...createForm, thumbnailUrl: e.target.value })}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-purple-500"
+                    placeholder="https://example.com/image.jpg"
+                  />
+                </div>
+              </div>
+              <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowCreateModal(false);
+                    setCreateForm({ title: '', description: '', thumbnailUrl: '', instructorId: '' });
+                  }}
+                  disabled={creating}
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={creating}
+                  className="px-4 py-2 text-sm font-medium text-white bg-purple-600 rounded-md hover:bg-purple-700 disabled:opacity-50"
+                >
+                  {creating ? 'Creating...' : 'Create Course'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Edit Modal */}
       {showEditModal && editingCourse && (
@@ -376,6 +586,13 @@ export default function CourseManagement() {
                 </div>
               </div>
               <div className="mt-6 flex gap-3 justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleManageLessons(editingCourse.id)}
+                  className="px-4 py-2 text-sm font-medium text-indigo-600 bg-indigo-50 border border-indigo-300 rounded-md hover:bg-indigo-100"
+                >
+                  Manage Lessons
+                </button>
                 <button
                   type="button"
                   onClick={() => {
